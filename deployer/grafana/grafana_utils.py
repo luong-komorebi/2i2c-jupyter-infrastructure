@@ -21,14 +21,13 @@ def get_grafana_url(cluster_name):
     with open(config_file) as f:
         support_config = yaml.load(f)
 
-    grafana_tls_config = (
+    if grafana_tls_config := (
         support_config.get("grafana", {}).get("ingress", {}).get("tls", [])
-    )
-    if not grafana_tls_config:
+    ):
+        # We only have one tls host right now. Modify this when things change.
+        return "https://" + grafana_tls_config[0]["hosts"][0]
+    else:
         raise ValueError(f"grafana.ingress.tls config for {cluster_name} missing!")
-
-    # We only have one tls host right now. Modify this when things change.
-    return "https://" + grafana_tls_config[0]["hosts"][0]
 
 
 def get_cluster_prometheus_address(cluster_name):
@@ -56,20 +55,18 @@ def get_cluster_prometheus_address(cluster_name):
             f"`prometheusIngressAuthSecret` wasn't configured for {cluster_name}"
         )
 
-    tls_config = (
+    if tls_config := (
         support_config.get("prometheus", {})
         .get("server", {})
         .get("ingress", {})
         .get("tls", [])
-    )
-
-    if not tls_config:
+    ):
+        # We only have one tls host right now. Modify this when things change.
+        return tls_config[0]["hosts"][0]
+    else:
         raise ValueError(
             f"No tls config was found for the prometheus instance of {cluster_name}"
         )
-
-    # We only have one tls host right now. Modify this when things change.
-    return tls_config[0]["hosts"][0]
 
 
 def get_cluster_prometheus_creds(cluster_name):

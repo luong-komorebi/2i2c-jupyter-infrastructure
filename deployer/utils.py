@@ -61,12 +61,6 @@ def create_markdown_comment(support_staging_matrix, prod_matrix):
         "reason_for_redeploy": "Reason for Redeploy",
     }
 
-    # A dictionary to convert row values when they are Boolean
-    boolean_converter = {
-        True: "Yes",
-        False: "No",
-    }
-
     # === To reliably convert a list of dictionaries into a Markdown table, the keys
     # === must be consistent across each dictionary in the list as they will become the
     # === columns of the table. Moreover, we want the columns to be in 'sensible' order
@@ -76,6 +70,12 @@ def create_markdown_comment(support_staging_matrix, prod_matrix):
     if support_staging_matrix:
         # Format the Support and Staging matrix jobs
         formatted_support_staging_matrix = []
+        # A dictionary to convert row values when they are Boolean
+        boolean_converter = {
+            True: "Yes",
+            False: "No",
+        }
+
         for entry in support_staging_matrix:
             formatted_entry = {
                 column_converter["provider"]: entry["provider"],

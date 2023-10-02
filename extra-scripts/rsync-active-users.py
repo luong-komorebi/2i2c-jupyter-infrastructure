@@ -33,8 +33,7 @@ def _escape_char(c, escape_char=ESCAPE_CHAR):
     """Escape a single character"""
     buf = []
     for byte in c.encode("utf8"):
-        buf.append(escape_char)
-        buf.append("%X" % byte)
+        buf.extend((escape_char, "%X" % byte))
     return "".join(buf)
 
 
@@ -161,8 +160,6 @@ def main():
 
     pool = ThreadPoolExecutor(max_workers=args.concurrency)
     futures = []
-    completed_futures = 0
-
     for user in users_since:
         # Escaping logic from https://github.com/jupyterhub/kubespawner/blob/0eecad35d8829d8d599be876ee26c192d622e442/kubespawner/spawner.py#L1340
         # tarring is CPU bound, so we can parallelize trivially.
@@ -177,9 +174,8 @@ def main():
         )
         futures.append(future)
 
-    for future in as_completed(futures):
+    for completed_futures, future in enumerate(as_completed(futures), start=1):
         completed_user, duration = future.result()
-        completed_futures += 1
         print(
             f"Finished {completed_futures} of {len(users_since)} in {duration:0.3f} - user {completed_user}"
         )

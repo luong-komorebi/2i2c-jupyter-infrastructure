@@ -51,11 +51,9 @@ def get_allusers_feature_status(jupyterhub_config):
     except KeyError:
         pass
 
-    for vol in extra_volume_mounts:
-        if "allusers" in vol.get("mountPath", ""):
-            return True
-
-    return False
+    return any(
+        "allusers" in vol.get("mountPath", "") for vol in extra_volume_mounts
+    )
 
 
 def get_dedicated_nodepool_status(jupyterhub_config):
@@ -103,9 +101,7 @@ def parse_yaml_config_value_files_for_features(cluster_path, hub_values_files):
     for config_file in hub_values_files:
         with open(cluster_path.joinpath(config_file)) as f:
             hub_config = safe_load(f)
-        jupyterhub_config = retrieve_jupyterhub_config_dict(hub_config)
-
-        if jupyterhub_config:
+        if jupyterhub_config := retrieve_jupyterhub_config_dict(hub_config):
             if not features.get("authenticator", ""):
                 features["authenticator"] = get_hub_authentication(jupyterhub_config)
             if not features.get("anonymization", None):
@@ -150,9 +146,9 @@ def parse_terraform_value_files_for_features(terraform_config):
     features = {}
     # Checks whether or not the cluster has any form of user buckets setup
     if terraform_config.get("user_buckets", False):
-        # Then we check which hubs have buckets enabled
-        hub_cloud_permissions = terraform_config.get("hub_cloud_permissions", None)
-        if hub_cloud_permissions:
+        if hub_cloud_permissions := terraform_config.get(
+            "hub_cloud_permissions", None
+        ):
             for hub_slug, permissions in hub_cloud_permissions.items():
                 features[hub_slug] = {
                     "user_buckets": True,
@@ -166,7 +162,7 @@ def build_options_list_entry(hub, hub_count, values_files_features, terraform_fe
     domain = f"[{hub['domain']}](https://{hub['domain']})"
     return {
         "domain": domain,
-        "dedicated cluster": False if hub_count else True,
+        "dedicated cluster": not hub_count,
         "dedicated nodepool": values_files_features["dedicated_nodepool"],
         "user buckets (scratch/persistent)": terraform_features.get(
             hub["name"], {}
@@ -177,13 +173,10 @@ def build_options_list_entry(hub, hub_count, values_files_features, terraform_fe
         "authenticator": values_files_features["authenticator"],
         "user anonymisation": values_files_features["anonymization"],
         "admin access to allusers dirs": values_files_features["allusers"],
-        "community domain": False if "2i2c.cloud" in domain else True,
+        "community domain": "2i2c.cloud" not in domain,
         "custom login page": values_files_features["custom_homepage"],
         "custom html pages": values_files_features["custom_html"],
         "gh-scoped-creds": values_files_features["gh_scoped_creds"],
-        #         "static web pages":
-        #         "GPUs":
-        #         "profile lists":
     }
 
 

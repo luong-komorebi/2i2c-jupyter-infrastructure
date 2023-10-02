@@ -4,6 +4,7 @@ which hubs will be upgraded as a result of a merge. This script is run in CI/CD
 to download the markdown content of the deployment plan from a GitHub Actions
 workflow artifact and then post it as a comment on the PR that generated the plan.
 """
+
 import io
 import os
 import re
@@ -46,9 +47,7 @@ all_artifacts = response.json()["artifacts"]
 # paginated and we need to loop through them to collect all the results.
 # It is unlikely that we will have more than 100 artifact results for a single
 # worflow ID however.
-while ("Link" in response.headers.keys()) and (
-    'rel="next"' in response.headers["Link"]
-):
+while "Link" in response.headers and 'rel="next"' in response.headers["Link"]:
     next_url = re.search(r'(?<=<)([\S]*)(?=>; rel="next")', response.headers["Link"])
     response = requests.get(next_url.group(0), headers=headers)
     all_artifacts.extend(response.json()["artifacts"])
@@ -90,9 +89,7 @@ issue_comments = response.json()
 
 # If "Link" is present in the response headers, that means that the results are
 # paginated and we need to loop through them to collect all the results.
-while ("Link" in response.headers.keys()) and (
-    'rel="next"' in response.headers["Link"]
-):
+while "Link" in response.headers and 'rel="next"' in response.headers["Link"]:
     next_url = re.search(r'(?<=<)([\S]*)(?=>; rel="next")', response.headers["Link"])
     response = requests.get(next_url.group(0), headers=headers)
     issue_comments.extend(response.json())

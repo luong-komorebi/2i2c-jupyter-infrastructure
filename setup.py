@@ -5,10 +5,9 @@ with open("README.md", encoding="utf8") as f:
 
 install_requires = []
 with open("requirements.txt") as f:
-    for l in f:
-        if not l.startswith("#"):
-            install_requires.append(l.split("#", 1)[0].strip())
-
+    install_requires.extend(
+        l.split("#", 1)[0].strip() for l in f if not l.startswith("#")
+    )
 setup(
     name="2i2c-deployer",
     version="0.1",

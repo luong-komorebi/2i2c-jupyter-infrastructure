@@ -57,9 +57,9 @@ class Hub:
                 subprocess.check_call(["kubectl", "apply", "-f", manifest_url])
 
         with get_decrypted_files(
-            self.cluster.config_path.joinpath(p)
-            for p in self.spec["helm_chart_values_files"]
-        ) as values_files:
+                self.cluster.config_path.joinpath(p)
+                for p in self.spec["helm_chart_values_files"]
+            ) as values_files:
             cmd = [
                 "helm",
                 "upgrade",
@@ -78,9 +78,7 @@ class Hub:
                 cmd.append("--debug")
 
             # Add on the values files
-            for values_file in values_files:
-                cmd.append(f"--values={values_file}")
-
+            cmd.extend(f"--values={values_file}" for values_file in values_files)
             # join method will fail on the PosixPath element if not transformed
             # into a string first
             print_colour(f"Running {' '.join([str(c) for c in cmd])}")

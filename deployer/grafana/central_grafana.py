@@ -42,7 +42,7 @@ def build_datasource_details(cluster_name):
     # Get the credentials of this prometheus instance
     prometheus_creds = get_cluster_prometheus_creds(cluster_name)
 
-    datasource_details = {
+    return {
         "name": cluster_name,
         "type": "prometheus",
         "access": "proxy",
@@ -51,8 +51,6 @@ def build_datasource_details(cluster_name):
         "basicAuthUser": prometheus_creds["username"],
         "secureJsonData": {"basicAuthPassword": prometheus_creds["password"]},
     }
-
-    return datasource_details
 
 
 def build_datasource_request_headers(cluster_name):
@@ -64,13 +62,11 @@ def build_datasource_request_headers(cluster_name):
     """
     token = get_grafana_token(cluster_name)
 
-    headers = {
+    return {
         "Accept": "application/json",
         "Content-Type": "application/json",
         "Authorization": f"Bearer {token}",
     }
-
-    return headers
 
 
 def get_clusters_used_as_datasources(cluster_name, datasource_endpoint):
@@ -153,8 +149,6 @@ def update_central_grafana_datasources(
                     "yellow",
                 )
                 exceptions += 1
-                pass
-
     if exceptions:
         print_colour(
             f"Failed to add {exceptions} clusters as datasources. See errors above!",

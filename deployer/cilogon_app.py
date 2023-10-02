@@ -51,10 +51,7 @@ def build_request_headers(admin_id, admin_secret):
 def build_request_url(id=None):
     url = "https://cilogon.org/oauth2/oidc-cm"
 
-    if id is None:
-        return url
-
-    return str(URL(url).with_query({"client_id": id}))
+    return url if id is None else str(URL(url).with_query({"client_id": id}))
 
 
 def build_client_details(cluster_name, hub_name, callback_url):
@@ -125,10 +122,7 @@ def stored_client_id_same_with_cilogon_records(
         return False
 
     cilogon_client_id = cilogon_client.get("client_id", None)
-    if cilogon_client_id != stored_client_id:
-        return False
-
-    return True
+    return cilogon_client_id == stored_client_id
 
 
 def print_not_ok_request_message(response):
@@ -159,8 +153,7 @@ def create_client(
 
     # Check if there's a client id already stored in the config file for this hub
     if Path(config_filename).is_file():
-        client_id = load_client_id_from_file(config_filename)
-        if client_id:
+        if client_id := load_client_id_from_file(config_filename):
             print_colour(
                 f"Found existing CILogon client app in {config_filename}.", "yellow"
             )
@@ -294,23 +287,7 @@ def delete_client(admin_id, admin_secret, cluster_name, hub_name, client_id=None
         cluster_name, hub_name
     )
 
-    if not client_id:
-        if Path(config_filename).is_file():
-            client_id = load_client_id_from_file(config_filename)
-            # Nothing to do if no client has been found
-            if not client_id:
-                print_colour(
-                    "No `client_id` to delete was provided and couldn't find any in `config_filename`",
-                    "red",
-                )
-                return
-        else:
-            print_colour(
-                f"No `client_id` to delete was provided and couldn't find any {config_filename} file",
-                "red",
-            )
-            return
-    else:
+    if client_id:
         if not stored_client_id_same_with_cilogon_records(
             admin_id,
             admin_secret,
@@ -324,6 +301,21 @@ def delete_client(admin_id, admin_secret, cluster_name, hub_name, client_id=None
             )
             return
 
+    elif Path(config_filename).is_file():
+        client_id = load_client_id_from_file(config_filename)
+        # Nothing to do if no client has been found
+        if not client_id:
+            print_colour(
+                "No `client_id` to delete was provided and couldn't find any in `config_filename`",
+                "red",
+            )
+            return
+    else:
+        print_colour(
+            f"No `client_id` to delete was provided and couldn't find any {config_filename} file",
+            "red",
+        )
+        return
     print(f"Deleting the CILogon client details for {client_id}...")
     headers = build_request_headers(admin_id, admin_secret)
     response = requests.delete(build_request_url(client_id), headers=headers, timeout=5)

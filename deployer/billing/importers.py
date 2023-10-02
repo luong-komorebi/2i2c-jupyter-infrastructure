@@ -37,7 +37,7 @@ def build_gcp_query(cluster: dict, service_id=None):
         assert re.match(r"^[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}$", service_id, re.I)
         by_service = f'AND service.id = "{service_id}"'
 
-    query = f"""
+    return f"""
             SELECT
             invoice.month as month,
             project.id as project,
@@ -54,7 +54,6 @@ def build_gcp_query(cluster: dict, service_id=None):
             ORDER BY invoice.month ASC
             ;
             """
-    return query
 
 
 class BigqueryGCPBillingCostImporter:
@@ -135,8 +134,7 @@ class PrometheusUtilizationImporter:
         start = start_month.timestamp()
         end = end_month.timestamp()
         step = "24h"
-        rows = p.query_range(prom_query, start, end, step)
-        return rows
+        return p.query_range(prom_query, start, end, step)
 
     def clean_query_dataframe(self, df):
         df = self.clean_namespace_labels(df)
@@ -165,7 +163,7 @@ class PrometheusUtilizationImporter:
     def combine_support(self, df):
         df["support_combined"] = 0.0
         if "support" in df:
-            df["support_combined"] = df["support_combined"] + df["support"]
+            df["support_combined"] += df["support"]
 
         if "kube-system" in df:
             df["support_combined"] = df["support_combined"] + df["kube-system"]
@@ -210,8 +208,7 @@ def get_dedicated_cluster_costs(cluster, start_month, end_month):
         pandas.DataFrame of costs.
     """
     bq_importer = BigqueryGCPBillingCostImporter(cluster)
-    result = bq_importer.get_costs(start_month, end_month)
-    return result
+    return bq_importer.get_costs(start_month, end_month)
 
 
 def get_shared_cluster_utilization(cluster, start_month, end_month):

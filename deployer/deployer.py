@@ -132,7 +132,7 @@ def deploy_grafana_dashboards(
     # Add GRAFANA_TOKEN to the environment variables for
     # jupyterhub/grafana-dashboards' deploy.py script
     deploy_script_env = os.environ.copy()
-    deploy_script_env.update({"GRAFANA_TOKEN": grafana_token})
+    deploy_script_env["GRAFANA_TOKEN"] = grafana_token
     try:
         print_colour(f"Deploying grafana dashboards to {cluster_name}...")
         subprocess.check_call(
@@ -239,9 +239,9 @@ def generate_helm_upgrade_jobs(
             "reason_for_redeploy": "",
         }
 
-        # Check if this cluster file has been modified. If so, set boolean flags to True
-        intersection = set(changed_filepaths).intersection([str(cluster_file)])
-        if intersection:
+        if intersection := set(changed_filepaths).intersection(
+            [str(cluster_file)]
+        ):
             print_colour(
                 f"This cluster.yaml file has been modified. Generating jobs to upgrade all hubs and the support chart on THIS cluster: {cluster_name}"
             )
@@ -348,7 +348,7 @@ def run_hub_health_check(
     elif len(hub_indx) > 1:
         print_colour("ERROR: More than one hub with this name found!")
         sys.exit(1)
-    elif len(hub_indx) == 0:
+    elif not hub_indx:
         print_colour("ERROR: No hubs with this name found!")
         sys.exit(1)
 

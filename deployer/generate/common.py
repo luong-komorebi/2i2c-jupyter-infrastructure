@@ -45,8 +45,8 @@ def generate_support_files(cluster_config_directory, vars):
     print_colour("Generating the prometheus credentials encrypted file...", "yellow")
     alphabet = string.ascii_letters + string.digits
     credentials = {
-        "username": "".join(secrets.choice(alphabet) for i in range(64)),
-        "password": "".join(secrets.choice(alphabet) for i in range(64)),
+        "username": "".join(secrets.choice(alphabet) for _ in range(64)),
+        "password": "".join(secrets.choice(alphabet) for _ in range(64)),
     }
     with open(
         REPO_ROOT / "config/clusters/templates/common/support.secret.values.yaml"

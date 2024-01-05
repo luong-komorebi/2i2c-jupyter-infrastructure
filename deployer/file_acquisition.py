@@ -85,11 +85,9 @@ def build_absolute_path_to_hub_encrypted_config_file(cluster_name, hub_name):
         Note that file doesn't need to exist.
     """
     cluster_config_dir_path = find_absolute_path_to_cluster_file(cluster_name).parent
-    encrypted_file_path = cluster_config_dir_path.joinpath(
+    return cluster_config_dir_path.joinpath(
         f"enc-{hub_name}.secret.values.yaml"
     )
-
-    return encrypted_file_path
 
 
 def persist_config_in_encrypted_file(encrypted_file, new_config):
@@ -196,10 +194,7 @@ def get_decrypted_file(original_filepath):
         with open(original_filepath) as f:
             # JSON files output by terraform have hard tabs, the *one* thing that is
             # valid JSON but not valid YAML
-            if ext.endswith("json"):
-                loader_func = json.load
-            else:
-                loader_func = yaml.load
+            loader_func = json.load if ext.endswith("json") else yaml.load
             try:
                 content = loader_func(f)
             except ScannerError:

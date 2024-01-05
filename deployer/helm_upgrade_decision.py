@@ -151,11 +151,9 @@ def generate_hub_matrix_jobs(
                 cluster_file.parent.joinpath(values_file)
                 for values_file in hub.get("helm_chart_values_files", {})
             ]
-            # Establish if any of this hub's helm chart values files have been
-            # modified
-            intersection = added_or_modified_files.intersection(values_files)
-
-            if intersection:
+            if intersection := added_or_modified_files.intersection(
+                values_files
+            ):
                 # If at least one of the helm chart values files associated with
                 # this hub has been modified, add it to list of matrix jobs to be
                 # upgraded
@@ -228,9 +226,7 @@ def generate_support_matrix_jobs(
     # Empty list to store the matrix definitions in
     matrix_jobs = []
 
-    # Double-check that support is defined for this cluster.
-    support_config = cluster_config.get("support", {})
-    if support_config:
+    if support_config := cluster_config.get("support", {}):
         if upgrade_support_on_all_clusters or upgrade_support_on_this_cluster:
             # We know we're upgrading support on all clusters, so just add the cluster
             # name to the list of matrix jobs and move on
@@ -250,9 +246,9 @@ def generate_support_matrix_jobs(
                 cluster_file.parent.joinpath(values_file)
                 for values_file in support_config.get("helm_chart_values_files", {})
             ]
-            intersection = added_or_modified_files.intersection(values_files)
-
-            if intersection:
+            if intersection := added_or_modified_files.intersection(
+                values_files
+            ):
                 matrix_job = cluster_info.copy()
                 matrix_job["upgrade_support"] = True
                 matrix_job[
@@ -382,14 +378,11 @@ def ensure_support_staging_jobs_have_correct_keys(
     # upgrade_staging key present, even if we just set it to False
     for job in support_and_staging_matrix_jobs:
         if "upgrade_staging" not in job.keys():
-            # Get a list of prod hubs running on the same cluster this staging job will
-            # run on
-            hubs_on_this_cluster = [
+            if hubs_on_this_cluster := [
                 hub["hub_name"]
                 for hub in prod_hub_matrix_jobs
                 if hub["cluster_name"] == job["cluster_name"]
-            ]
-            if hubs_on_this_cluster:
+            ]:
                 # There are prod hubs on this cluster that require an upgrade, and so we
                 # also upgrade staging
                 job["upgrade_staging"] = True
@@ -431,9 +424,9 @@ def assign_staging_jobs_for_missing_clusters(
     support_staging_clusters = {
         job["cluster_name"] for job in support_and_staging_matrix_jobs
     }
-    missing_clusters = prod_hub_clusters.difference(support_staging_clusters)
-
-    if missing_clusters:
+    if missing_clusters := prod_hub_clusters.difference(
+        support_staging_clusters
+    ):
         # Generate support/staging jobs for clusters that don't have them but do have
         # prod hub jobs. We assume they are missing because neither the support chart
         # nor staging hub needed an upgrade. We set upgrade_support to False. However,

@@ -29,8 +29,7 @@ def cluster():
                 billing_id: 00DEAD-BEEF000-012345
     """
 
-    c = yaml.load(test_cluster)
-    return c
+    return yaml.load(test_cluster)
 
 
 @pytest.fixture
@@ -41,14 +40,15 @@ def shared_cluster(cluster):
 
 @pytest.fixture
 def schema():
-    schema = DataFrameSchema(
+    return DataFrameSchema(
         {
             "project": Column(String),
-            "total_with_credits": Column(Float, Check(lambda x: x > 0.0), coerce=True),
+            "total_with_credits": Column(
+                Float, Check(lambda x: x > 0.0), coerce=True
+            ),
         },
         index=Index(DateTime, name="month"),
     )
-    return schema
 
 
 @pytest.fixture

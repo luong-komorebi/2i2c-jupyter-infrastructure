@@ -17,6 +17,7 @@ given date-time period, the head commit of the workflow run contains the relevan
 Pull Request number, and the name of the *other* workflow that we want to provide
 a link to.
 """
+
 import os
 import re
 import sys
@@ -53,7 +54,7 @@ required_vars = {
     "WORKFLOW_NAME": workflow_name,
 }
 
-for required_var in required_vars.keys():
+for required_var in required_vars:
     if required_vars[required_var] is None:
         raise ValueError(f"{required_var} env var must be set")
 
@@ -87,9 +88,7 @@ response = requests.get(url, headers=headers, params=params)
 all_workflow_runs = response.json()["workflow_runs"]
 
 # Detect if pagination is required and execute as needed
-while ("Link" in response.headers.keys()) and (
-    'rel="next"' in response.headers["Link"]
-):
+while "Link" in response.headers and 'rel="next"' in response.headers["Link"]:
     next_url = re.search(r'(?<=<)([\S]*)(?=>; rel="next")', response.headers["Link"])
     response = requests.get(next_url.group(0), headers=headers)
     all_workflow_runs.extend(response.json()["workflow_runs"])

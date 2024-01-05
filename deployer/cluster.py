@@ -84,9 +84,7 @@ class Cluster:
                 str(support_dir),
             ]
 
-            for values_file in values_files:
-                cmd.append(f"--values={values_file}")
-
+            cmd.extend(f"--values={values_file}" for values_file in values_files)
             print_colour(f"Running {' '.join([str(c) for c in cmd])}")
             subprocess.check_call(cmd)
 
